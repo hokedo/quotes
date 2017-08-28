@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
+
 import sys
-#print sys.path
 import os
 sys.path.append(os.getcwd()) # quotes.items is not found for some reason
 
@@ -21,7 +22,7 @@ class QuotesSpider(CrawlSpider):
 
 		for quote_data in pq_document(".quoteDetails").items():
 			q["url"] = response.url 		
-			q["text"] =  quote_data(".quoteText").clone().remove('a').remove('span').remove('script').text()
+			q["text"] =  quote_data(".quoteText").clone().remove('script').remove('a').remove('span').text().strip(u", ― \n“”")
 			q["author"] = quote_data(".quoteText a").text()
 
 			yield q
