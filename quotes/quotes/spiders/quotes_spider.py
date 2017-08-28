@@ -21,7 +21,7 @@ class QuotesSpider(CrawlSpider):
 
 		for quote_data in pq_document(".quoteDetails").items():
 			q["url"] = response.url 		
-			q["text"] =  quote_data(".quoteText").clone().remove('a').text()
+			q["text"] =  quote_data(".quoteText").clone().remove('a').remove('span').remove('script').text()
 			q["author"] = quote_data(".quoteText a").text()
 
 			yield q
