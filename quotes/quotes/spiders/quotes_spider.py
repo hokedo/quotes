@@ -1,17 +1,12 @@
 import sys
 #print sys.path
 import os
-sys.path.append(os.getcwd())
-from scrapy import Selector 
+sys.path.append(os.getcwd()) # quotes.items is not found for some reason
+
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from quotes.items import QuoteItem
-
-def safe_extract(selector): 	
-	try: 		
-		return selector[0].extract().strip() 	
-	except IndexError: 		
-		return None   
+from pyquery import PyQuery as pq
 
 class QuotesSpider(CrawlSpider): 	
 	name = "quotes_spider"  	
@@ -20,11 +15,13 @@ class QuotesSpider(CrawlSpider):
 		Rule(LinkExtractor(allow=('https?://www.goodreads.com/quotes.*', )), callback='extract'),
 	]  	
 
-def extract(self, response): 		
-	selector = Selector(response)  		
-	q = QuoteItem()  		
-	q["url"] = response.url 		
-	q["name"] = safe_extract(selector.css("div.hotel_id h1 span[itemprop='name']::text")) 	
-	q["streetAddress"] = safe_extract(selector.css("div.hotel_id ul.hotel_address span[itemprop='streetAddress']::text"))
+	def extract(self, response): 		
+		pq_document = pq(response.body)  		
+		q = QuoteItem()
 
-	yield q
+		for quote_data in pq_document(".quoteDetails").items():
+			q["url"] = response.url 		
+			q["text"] =  quote_data(".quoteText").clone().remove('a').text()
+			q["author"] = quote_data(".quoteText a").text()
+
+			yield q
